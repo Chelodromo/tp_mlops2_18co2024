@@ -1,0 +1,15 @@
+# Ignorar los logs de Airflow
+logs/
+mlflow/
+datalake/
+plugins/tasks/__pycache__/
+dags/.DS_Store
+.DS_Store
+plugins/.DS_Store
+.env
+.DS_Store
+mlruns/
+dags/__pycache__/
+plugins/tasks/.DS_Store
+plugins/tasks/__pycache__/
+fast_api/datos_actuales.ipynb
