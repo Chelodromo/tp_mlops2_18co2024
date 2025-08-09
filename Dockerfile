@@ -12,3 +12,7 @@ RUN apt-get update && apt-get install -y libgomp1
 # RUN chmod -R 777 /mlflow/artifacts
 
 USER airflow
+
+# Copiar requirements e instalar dependencias
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt

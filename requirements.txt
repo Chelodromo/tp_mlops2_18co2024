@@ -3,3 +3,5 @@ requests
 SQLAlchemy
 mplfinance
 scikit-learn
+kafka-python
+confluent-kafka

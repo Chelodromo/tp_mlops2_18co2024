@@ -14,6 +14,7 @@ from tasks.entrenamiento_utils import (
     train_knn_optuna_minio
 )
 from tasks.prediccion_utils import seleccionar_mejor_modelo, predict_datos_actuales, test_endpoints_predict
+from tasks.kafka_producer_utils import kafka_producer_sensor_data, kafka_producer_test_connection
 
 def notificar_api_reload():
     url = "http://fastapi_app:8000/reload"
@@ -100,9 +101,22 @@ with DAG(
     dag=dag,
     )
 
+    # Tareas de Kafka Producer
+    test_kafka_connection = PythonOperator(
+        task_id='test_kafka_connection',
+        python_callable=kafka_producer_test_connection,
+        dag=dag,
+    )
+
+    kafka_producer_task = PythonOperator(
+        task_id='kafka_producer_sensor_data',
+        python_callable=kafka_producer_sensor_data,
+        dag=dag,
+    )
+
 
     # Definimos el flujo de dependencias
     conectar_minio >> descargar_dataset_task >> procesar_dataset_minio_task >> split_dataset_minio_task >> mlflow_test_run
     mlflow_test_run >> [train_lightgbm, train_randomforest, train_logisticregression, train_knn]
     [train_lightgbm, train_randomforest, train_logisticregression, train_knn] >> seleccionar_modelo
-    seleccionar_modelo >> recargar_modelo_api >> predict_actual >> test_endpoints
+    seleccionar_modelo >> recargar_modelo_api >> test_kafka_connection >> kafka_producer_task >> predict_actual >> test_endpoints
