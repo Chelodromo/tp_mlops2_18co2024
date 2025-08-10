@@ -364,7 +364,97 @@ services:
     depends_on:
       - fastapi_app
     restart: always
-    
+## ----- KAFKA ------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      # Chequeo simple: solo verifica que el puerto 2181 esté abierto
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/2181'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"     # acceso desde otros contenedores
+      - "29092:29092"   # acceso desde host
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/9092'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8085:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "mlops-cluster"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
+    restart: unless-stopped
+###----- END KAFKA -----
+
+### Data Producer Service ###
+  data-producer:
+      build:
+        context: ./streaming/producer
+        dockerfile: Dockerfile
+      container_name: data-producer
+      depends_on:
+        kafka:
+          condition: service_healthy
+      environment:
+        KAFKA_BOOTSTRAP: "kafka:9092"
+        KAFKA_TOPIC_IN: "features"
+        EVENT_RATE_PER_SEC: "2"   # ajustá el ritmo
+        SEED: "42"                # opcional
+      restart: unless-stopped
+
+### Consumer Smoke ###
+  consumer-smoke:
+    build:
+      context: ./streaming/consumer_smoke
+      dockerfile: Dockerfile
+    container_name: consumer-smoke
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      KAFKA_TOPIC_IN: "features"
+      KAFKA_TOPIC_OUT: "predictions"
+      GROUP_ID: "smoke-consumer"
+    restart: unless-stopped
+
 volumes:
   postgres-db-volume:
   minio_data:
