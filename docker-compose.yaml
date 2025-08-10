@@ -505,6 +505,24 @@ services:
       MODEL_CHECK_INTERVAL_SEC: "30"
     restart: unless-stopped
 
+
+### streamlit kafka ###
+  streamlit-kafka:
+    build:
+      context: ./streaming/streamlit_kafka
+      dockerfile: Dockerfile
+    container_name: streamlit-kafka
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      KAFKA_TOPIC: "predictions"
+      TZ: "America/Argentina/Salta"
+    ports:
+      - "8502:8501"
+    restart: unless-stopped
+
 volumes:
   postgres-db-volume:
   minio_data:
