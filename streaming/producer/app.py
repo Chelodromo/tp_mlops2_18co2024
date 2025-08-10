@@ -39,6 +39,7 @@ def sample_event():
         "Rain": round(Rain,3),
         "ET": round(ET,3),
         "WDir_deg": round(WDir_deg,1),
+        "Date_num": t,  # <--- IMPORTANTE
         "ts": t
     }
 

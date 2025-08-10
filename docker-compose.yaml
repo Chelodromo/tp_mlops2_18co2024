@@ -455,6 +455,56 @@ services:
       GROUP_ID: "smoke-consumer"
     restart: unless-stopped
 
+### Model checker ###
+
+  model-test:
+      build:
+        context: ./streaming/model_test
+        dockerfile: Dockerfile
+      environment:
+        MINIO_ENDPOINT: "minio:9000"
+        MINIO_ACCESS_KEY: "minio_admin"
+        MINIO_SECRET_KEY: "minio_admin"
+        BUCKET_NAME: "respaldo2"
+        PREFIX: "best_model/"
+        KAFKA_BOOTSTRAP: "kafka:9092"
+        KAFKA_TOPIC_IN: "features"
+        READ_LAST_N: "10"
+      depends_on:
+        minio:
+          condition: service_started
+      volumes:
+        - ./artifacts:/artifacts   # opcional; elimina esta línea si no querés persistir
+      restart: "no"
+
+  model-inference:
+    build:
+      context: ./streaming/inference
+      dockerfile: Dockerfile
+    container_name: model-inference
+    depends_on:
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      # Kafka
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      KAFKA_TOPIC_IN: "features"
+      KAFKA_TOPIC_OUT: "predictions"
+      GROUP_ID: "model-inference"
+
+      # MinIO (mismos valores que usaste en el test)
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: "minio_admin"
+      MINIO_SECRET_KEY: "minio_admin"
+      BUCKET_NAME: "respaldo2"
+      PREFIX: "best_model/"
+
+      # Chequeo periódico de nuevo modelo (seg.)
+      MODEL_CHECK_INTERVAL_SEC: "30"
+    restart: unless-stopped
+
 volumes:
   postgres-db-volume:
   minio_data:

@@ -84,15 +84,15 @@ with DAG(
         python_callable=seleccionar_mejor_modelo
     )
 
-    predict_actual = PythonOperator(
-        task_id="predict_datos_actuales",
-        python_callable=predict_datos_actuales
-    )
+    # predict_actual = PythonOperator(
+    #     task_id="predict_datos_actuales",
+    #     python_callable=predict_datos_actuales
+    # )
 
-    test_endpoints = PythonOperator(
-        task_id="test_fastapi_endpoints",
-        python_callable=test_endpoints_predict
-    )
+    # test_endpoints = PythonOperator(
+    #     task_id="test_fastapi_endpoints",
+    #     python_callable=test_endpoints_predict
+    # )
     
     recargar_modelo_api = PythonOperator(
     task_id='recargar_modelo_api',
@@ -105,4 +105,4 @@ with DAG(
     conectar_minio >> descargar_dataset_task >> procesar_dataset_minio_task >> split_dataset_minio_task >> mlflow_test_run
     mlflow_test_run >> [train_lightgbm, train_randomforest, train_logisticregression, train_knn]
     [train_lightgbm, train_randomforest, train_logisticregression, train_knn] >> seleccionar_modelo
-    seleccionar_modelo >> recargar_modelo_api >> predict_actual >> test_endpoints
+    seleccionar_modelo >> recargar_modelo_api #>> predict_actual >> test_endpoints
