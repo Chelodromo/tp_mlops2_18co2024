@@ -197,7 +197,7 @@ Esto permite recibir datos continuamente, procesarlos y obtener predicciones del
    - Envía cada registro como mensaje a un tópico Kafka (`weather-data`).  
    - Incluye todas las variables requeridas por el modelo:  
      `TempOut`, `DewPt`, `WSpeed`, `WHSpeed`, `Bar`, `Rain`, `ET`, `WDir_deg`, `Date_num`.
-
+![kafka](capturas/05_kafka_producer.png)
 2. **Kafka Consumer (Predicciones)**  
    - Escucha el tópico `weather-data`.  
    - Procesa los datos y aplica el modelo de predicción.  
