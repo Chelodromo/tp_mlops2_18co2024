@@ -310,14 +310,15 @@ La aplicación **Streamlit** permite a los usuarios **interactuar de forma gráf
 ### 🖥️ Capturas de Pantalla (app de streamlit)
 
 - **Formulario Manual:**
-  
-  ![Inicio Streamlit](capturas/03_strlit_image.png)
-  ![Inicio Streamlit](capturas/04_strlit_image.png)
+
+  <img src="capturas/03_strlit_image.png" alt="Inicio Streamlit" width="400"/>  
+  <img src="capturas/04_strlit_image.png" alt="Inicio Streamlit" width="400"/>
 
 - **Carga de CSV y Predicciones Batch:**
 
-  ![Carga Batch CSV](capturas/01_strlit_image.png)
-  ![Carga Batch CSV](capturas/02_strlit_image.png)
+  <img src="capturas/01_strlit_image.png" alt="Carga Batch CSV" width="400"/>  
+  <img src="capturas/02_strlit_image.png" alt="Carga Batch CSV" width="400"/>
+
 
 ---
 
