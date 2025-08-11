@@ -240,11 +240,23 @@ Esto permite recibir datos continuamente, procesarlos y obtener predicciones del
 ---
 
 
+### 📜 Comandos útiles para ver logs
+
+Para **ver en tiempo real** lo que está produciendo y consumiendo Kafka:
+
+```bash
+# Ver mensajes enviados por el Producer
+docker compose logs -f kafka-producer
+
+# Ver predicciones generadas por el Consumer (model-inference)
+docker compose logs -f model-inference
+
 ## 🚀 Para levantar todo
 
 ```bash
 docker-compose up --build
 ```
+---
 
 Accesos:
 - **Airflow**: [http://localhost:8080](http://localhost:8080)
