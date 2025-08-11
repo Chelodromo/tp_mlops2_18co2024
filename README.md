@@ -185,6 +185,66 @@ Cada vez que la app FastAPI se inicia:
 - Busca automáticamente el último modelo `.pkl` en el bucket MinIO `respaldo2/best_model/`
 - Carga el modelo al inicio (`@app.on_event('startup')`).
 
+## ⚡ Integración con Apache Kafka
+
+Se implementó un flujo **streaming en tiempo real** para procesar y predecir datos meteorológicos usando **Kafka** como sistema de mensajería.  
+Esto permite recibir datos continuamente, procesarlos y obtener predicciones del modelo sin necesidad de esperar a un procesamiento por lotes (*batch*).
+
+### 🔹 Componentes desarrollados
+
+1. **Kafka Producer**  
+   - Lee datos meteorológicos de prueba o en tiempo real.  
+   - Envía cada registro como mensaje a un tópico Kafka (`weather-data`).  
+   - Incluye todas las variables requeridas por el modelo:  
+     `TempOut`, `DewPt`, `WSpeed`, `WHSpeed`, `Bar`, `Rain`, `ET`, `WDir_deg`, `Date_num`.
+
+2. **Kafka Consumer (Predicciones)**  
+   - Escucha el tópico `weather-data`.  
+   - Procesa los datos y aplica el modelo de predicción.  
+   - Envía los resultados (predicciones y features) a un segundo tópico Kafka (`predictions`).
+
+3. **Consumer para Streamlit Tiempo Real**  
+   - Se conecta al tópico `predictions`.  
+   - Muestra los resultados de manera continua en una interfaz gráfica, con tablas y gráficos actualizados en vivo.
+
+4. **Kafka UI**  
+   - Interfaz web para monitorear brokers, tópicos y mensajes.  
+   - Permite inspeccionar mensajes producidos y consumidos en tiempo real.
+
+---
+
+###  Tópicos Kafka usados
+
+| Tópico          | Descripción |
+|-----------------|-------------|
+| `weather-data`  | Mensajes con datos meteorológicos listos para el modelo. |
+| `predictions`   | Mensajes con el resultado de la predicción y features originales. |
+
+---
+
+###  Accesos importantes
+
+- **Kafka UI**: [http://localhost:8085](http://localhost:8085)  
+  *(Monitoreo de tópicos, mensajes y estado del broker)*  
+
+- **Producer**: integrado en el contenedor `kafka-producer` (envía mensajes a `weather-data`).  
+
+- **Consumer (Predicciones)**: integrado en `model-inference` (lee de `weather-data` y publica en `predictions`).  
+
+- **Streamlit Tiempo Real**: [http://localhost:8502](http://localhost:8502) *(lee de `predictions` y muestra resultados en vivo)*  
+
+---
+
+### 📊 Flujo de datos
+
+```mermaid
+flowchart LR
+    A[Kafka Producer] -->|weather-data| B[Model Inference]
+    B -->|predictions| C[Streamlit Tiempo Real]
+    B --> D[Kafka UI]
+    A --> D
+
+
 
 ## 🚀 Para levantar todo
 
