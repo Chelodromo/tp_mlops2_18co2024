@@ -311,13 +311,13 @@ La aplicación **Streamlit** permite a los usuarios **interactuar de forma gráf
 
 - **Formulario Manual:**
 
-  <img src="capturas/03_strlit_image.png" alt="Inicio Streamlit" width="400"/>  
-  <img src="capturas/04_strlit_image.png" alt="Inicio Streamlit" width="400"/>
+  <img src="capturas/03_strlit_image.png" alt="Inicio Streamlit" width="600"/>  
+  <img src="capturas/04_strlit_image.png" alt="Inicio Streamlit" width="600"/>
 
 - **Carga de CSV y Predicciones Batch:**
 
-  <img src="capturas/01_strlit_image.png" alt="Carga Batch CSV" width="400"/>  
-  <img src="capturas/02_strlit_image.png" alt="Carga Batch CSV" width="400"/>
+  <img src="capturas/01_strlit_image.png" alt="Carga Batch CSV" width="600"/>  
+  <img src="capturas/02_strlit_image.png" alt="Carga Batch CSV" width="600"/>
 
 
 ---
