@@ -198,26 +198,30 @@ Esto permite recibir datos continuamente, procesarlos y obtener predicciones del
    - Incluye todas las variables requeridas por el modelo:  
      `TempOut`, `DewPt`, `WSpeed`, `WHSpeed`, `Bar`, `Rain`, `ET`, `WDir_deg`, `Date_num`.
 ![kafka](capturas/05_kafka_producer.png)
+
 2. **Kafka Consumer (Predicciones)**  
-   - Escucha el tópico `weather-data`.  
+   - Escucha el tópico `features`.  
    - Procesa los datos y aplica el modelo de predicción.  
    - Envía los resultados (predicciones y features) a un segundo tópico Kafka (`predictions`).
+![kafka](capturas/05_kafka_inference.png)
 
-3. **Consumer para Streamlit Tiempo Real**  
+1. **Consumer para Streamlit Tiempo Real**  
    - Se conecta al tópico `predictions`.  
    - Muestra los resultados de manera continua en una interfaz gráfica, con tablas y gráficos actualizados en vivo.
+![kafka](capturas/05_kafka_streamlit.png)
 
-4. **Kafka UI**  
+
+1. **Kafka UI**  
    - Interfaz web para monitorear brokers, tópicos y mensajes.  
    - Permite inspeccionar mensajes producidos y consumidos en tiempo real.
-
+![kafka](capturas/05_kafka_UI.png)
 ---
 
 ###  Tópicos Kafka usados
 
 | Tópico          | Descripción |
 |-----------------|-------------|
-| `weather-data`  | Mensajes con datos meteorológicos listos para el modelo. |
+| `features`  | Mensajes con datos meteorológicos listos para el modelo. |
 | `predictions`   | Mensajes con el resultado de la predicción y features originales. |
 
 ---
