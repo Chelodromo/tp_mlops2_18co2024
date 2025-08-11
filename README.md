@@ -233,21 +233,11 @@ Esto permite recibir datos continuamente, procesarlos y obtener predicciones del
 
 - **Producer**: integrado en el contenedor `kafka-producer` (envía mensajes a `weather-data`).  
 
-- **Consumer (Predicciones)**: integrado en `model-inference` (lee de `weather-data` y publica en `predictions`).  
+- **Consumer (Predicciones)**: integrado en `model-inference` (lee de `features` y publica en `predictions`).  
 
 - **Streamlit Tiempo Real**: [http://localhost:8502](http://localhost:8502) *(lee de `predictions` y muestra resultados en vivo)*  
 
 ---
-
-### 📊 Flujo de datos
-
-```mermaid
-flowchart LR
-    A[Kafka Producer] -->|weather-data| B[Model Inference]
-    B -->|predictions| C[Streamlit Tiempo Real]
-    B --> D[Kafka UI]
-    A --> D
-
 
 
 ## 🚀 Para levantar todo
@@ -262,7 +252,9 @@ Accesos:
 - **MinIO Console**: [http://localhost:9001](http://localhost:9001)
 - **MLflow Tracking**: [http://localhost:5001](http://localhost:5001)
 - **Streamlit APP**: [http://localhost:8501](http://localhost:8501)
-
+- **Streamlit Tiempo Real**: [http://localhost:8502](http://localhost:8502) *(lee de `predictions` y muestra resultados en vivo)*  
+- **Kafka UI**: [http://localhost:8085](http://localhost:8085)  
+  *(Monitoreo de tópicos, mensajes y estado del broker)*  
 
 ## 🔧 Servicios Docker
 
@@ -277,6 +269,8 @@ Accesos:
 | MLflow            | 5001             | Tracking server de MLflow      |
 | FastAPI           | 8000             | API REST para predicciones     |
 | Streamlit         | 8501             | Aplicacion para usar el modelo     |
+| Streamlit (vivo)  | 8501             | Aplicacion de predicciones en tiempo real  |
+| Kafka IU          | 8085.            | UI de Kafka para ver los mensajes e inferencia|
 
 ## 🎨 Streamlit App
 
@@ -301,9 +295,7 @@ La aplicación **Streamlit** permite a los usuarios **interactuar de forma gráf
 
 ---
 
-### 🖥️ Capturas de Pantalla (sugerido)
-
-> *(Podés agregar capturas en una carpeta `capturas/` dentro del repo, y luego insertarlas así:)*
+### 🖥️ Capturas de Pantalla (app de streamlit)
 
 - **Formulario Manual:**
   
