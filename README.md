@@ -31,13 +31,32 @@ a1826 Sebastian Carreras
 │   ├── prediccion_utils.py           # Funciones de predeccion
 │   ├── procesamiento_utils.py           # Funciones de procesamiento
 │   ├── s3_utils.py           # Funciones de comunicacion con el bucker en Minio
-├── streamlit_app_app/             # App de FastAPI para servir el modelo
+├── streamlit_app/             # App de FastAPI para servir el modelo
 │   ├── app.py               # App principal
 │   ├── Dockerfile           # Contenedor streamlit
-│   ├── requirements.txt           # requerimientos del contenedor
-│   ├── Dockerfile           # Contenedor streamlit
+│   ├── requirements.txt     # requerimientos del contenedor
 │   ├── data.csv             # datos para probar la app en modo batch
 ├── mlflow/                  # Carpeta local para MLflow tracking
+├── consumer_smoke           # servicio de prueba sin predicciones reales, solo comunicacion
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── inference               # servicio de inferencia y conexion a kafka
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── model_test              # Conectarse a Kafka en el topic donde el producer envia los datos simulados (o históricos)
+│   ├── Dockerfile
+│   ├── model_test.py
+│   └── requirements.txt
+├── producer               # inyectar datos al topic de Kafka
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+└── streamlit_kafka.       # App para ver en tiempo real las predicciones
+    ├── app.py
+    ├── Dockerfile
+    └── requirements.txt
 ├── docker-compose.yml       # Definición de servicios
 └── .gitignore               # Ignorar archivos temporales
 ```
