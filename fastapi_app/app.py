@@ -11,6 +11,7 @@ from typing import List, Any
 from datetime import datetime
 from sklearn.base import BaseEstimator
 
+
 app = FastAPI()
 
 # Configuración de MinIO

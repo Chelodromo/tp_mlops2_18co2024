@@ -228,6 +228,7 @@ class Mutation:
 # Crear el schema GraphQL
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 
+
 # Crear la aplicación FastAPI
 app = FastAPI(
     title="Weather Dust Prediction GraphQL API", 
