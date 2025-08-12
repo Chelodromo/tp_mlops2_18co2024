@@ -31,13 +31,33 @@ a1826 Sebastian Carreras
 │   ├── prediccion_utils.py           # Funciones de predeccion
 │   ├── procesamiento_utils.py           # Funciones de procesamiento
 │   ├── s3_utils.py           # Funciones de comunicacion con el bucker en Minio
-├── streamlit_app_app/             # App de FastAPI para servir el modelo
+├── streamlit_app/             # App de FastAPI para servir el modelo
 │   ├── app.py               # App principal
 │   ├── Dockerfile           # Contenedor streamlit
-│   ├── requirements.txt           # requerimientos del contenedor
-│   ├── Dockerfile           # Contenedor streamlit
+│   ├── requirements.txt     # requerimientos del contenedor
 │   ├── data.csv             # datos para probar la app en modo batch
 ├── mlflow/                  # Carpeta local para MLflow tracking
+├── streaming/               # servicio de kafka
+  ├── consumer_smoke           # servicio de prueba sin predicciones reales, solo comunicacion
+  │   ├── app.py
+  │   ├── Dockerfile
+  │   └── requirements.txt
+  ├── inference               # servicio de inferencia y conexion a kafka
+  │   ├── app.py
+  │   ├── Dockerfile
+  │   └── requirements.txt
+  ├── model_test              # Conectarse a Kafka en el topic donde el producer envia los datos simulados (o históricos)
+  │   ├── Dockerfile
+  │   ├── model_test.py
+  │   └── requirements.txt
+  ├── producer               # inyectar datos al topic de Kafka
+  │   ├── app.py
+  │   ├── Dockerfile
+  │   └── requirements.txt
+  └── streamlit_kafka.       # App para ver en tiempo real las predicciones
+      ├── app.py
+      ├── Dockerfile
+      └── requirements.txt
 ├── docker-compose.yml       # Definición de servicios
 └── .gitignore               # Ignorar archivos temporales
 ```
@@ -185,12 +205,78 @@ Cada vez que la app FastAPI se inicia:
 - Busca automáticamente el último modelo `.pkl` en el bucket MinIO `respaldo2/best_model/`
 - Carga el modelo al inicio (`@app.on_event('startup')`).
 
+## ⚡ Integración con Apache Kafka
+
+Se implementó un flujo **streaming en tiempo real** para procesar y predecir datos meteorológicos usando **Kafka** como sistema de mensajería.  
+Esto permite recibir datos continuamente, procesarlos y obtener predicciones del modelo sin necesidad de esperar a un procesamiento por lotes (*batch*).
+
+### 🔹 Componentes desarrollados
+
+1. **Kafka Producer**  
+   - Lee datos meteorológicos de prueba o en tiempo real.  
+   - Envía cada registro como mensaje a un tópico Kafka (`weather-data`).  
+   - Incluye todas las variables requeridas por el modelo:  
+     `TempOut`, `DewPt`, `WSpeed`, `WHSpeed`, `Bar`, `Rain`, `ET`, `WDir_deg`, `Date_num`.
+![kafka](capturas/05_kafka_producer.png)
+
+2. **Kafka Consumer (Predicciones)**  
+   - Escucha el tópico `features`.  
+   - Procesa los datos y aplica el modelo de predicción.  
+   - Envía los resultados (predicciones y features) a un segundo tópico Kafka (`predictions`).
+![kafka](capturas/05_kafka_inference.png)
+
+1. **Consumer para Streamlit Tiempo Real**  
+   - Se conecta al tópico `predictions`.  
+   - Muestra los resultados de manera continua en una interfaz gráfica, con tablas y gráficos actualizados en vivo.
+![kafka](capturas/05_kafka_streamlit.png)
+
+
+1. **Kafka UI**  
+   - Interfaz web para monitorear brokers, tópicos y mensajes.  
+   - Permite inspeccionar mensajes producidos y consumidos en tiempo real.
+![kafka](capturas/05_kafka_UI.png)
+---
+
+###  Tópicos Kafka usados
+
+| Tópico          | Descripción |
+|-----------------|-------------|
+| `features`  | Mensajes con datos meteorológicos listos para el modelo. |
+| `predictions`   | Mensajes con el resultado de la predicción y features originales. |
+
+---
+
+###  Accesos importantes
+
+- **Kafka UI**: [http://localhost:8085](http://localhost:8085)  
+  *(Monitoreo de tópicos, mensajes y estado del broker)*  
+
+- **Producer**: integrado en el contenedor `kafka-producer` (envía mensajes a `weather-data`).  
+
+- **Consumer (Predicciones)**: integrado en `model-inference` (lee de `features` y publica en `predictions`).  
+
+- **Streamlit Tiempo Real**: [http://localhost:8502](http://localhost:8502) *(lee de `predictions` y muestra resultados en vivo)*  
+
+---
+
+
+### 📜 Comandos útiles para ver logs
+
+Para **ver en tiempo real** lo que está produciendo y consumiendo Kafka:
+
+```bash
+# Ver mensajes enviados por el Producer
+docker compose logs -f kafka-producer
+
+# Ver predicciones generadas por el Consumer (model-inference)
+docker compose logs -f model-inference
 
 ## 🚀 Para levantar todo
 
 ```bash
 docker-compose up --build
 ```
+---
 
 Accesos:
 - **Airflow**: [http://localhost:8080](http://localhost:8080)
@@ -198,7 +284,9 @@ Accesos:
 - **MinIO Console**: [http://localhost:9001](http://localhost:9001)
 - **MLflow Tracking**: [http://localhost:5001](http://localhost:5001)
 - **Streamlit APP**: [http://localhost:8501](http://localhost:8501)
-
+- **Streamlit Tiempo Real**: [http://localhost:8502](http://localhost:8502) *(lee de `predictions` y muestra resultados en vivo)*  
+- **Kafka UI**: [http://localhost:8085](http://localhost:8085)  
+  *(Monitoreo de tópicos, mensajes y estado del broker)*  
 
 ## 🔧 Servicios Docker
 
@@ -213,6 +301,8 @@ Accesos:
 | MLflow            | 5001             | Tracking server de MLflow      |
 | FastAPI           | 8000             | API REST para predicciones     |
 | Streamlit         | 8501             | Aplicacion para usar el modelo     |
+| Streamlit (vivo)  | 8501             | Aplicacion de predicciones en tiempo real  |
+| Kafka IU          | 8085.            | UI de Kafka para ver los mensajes e inferencia|
 
 ## 🎨 Streamlit App
 
@@ -237,19 +327,18 @@ La aplicación **Streamlit** permite a los usuarios **interactuar de forma gráf
 
 ---
 
-### 🖥️ Capturas de Pantalla (sugerido)
-
-> *(Podés agregar capturas en una carpeta `capturas/` dentro del repo, y luego insertarlas así:)*
+### 🖥️ Capturas de Pantalla (app de streamlit)
 
 - **Formulario Manual:**
-  
-  ![Inicio Streamlit](capturas/03_strlit_image.png)
-  ![Inicio Streamlit](capturas/04_strlit_image.png)
+
+  <img src="capturas/03_strlit_image.png" alt="Inicio Streamlit" width="600"/>  
+  <img src="capturas/04_strlit_image.png" alt="Inicio Streamlit" width="600"/>
 
 - **Carga de CSV y Predicciones Batch:**
 
-  ![Carga Batch CSV](capturas/01_strlit_image.png)
-  ![Carga Batch CSV](capturas/02_strlit_image.png)
+  <img src="capturas/01_strlit_image.png" alt="Carga Batch CSV" width="600"/>  
+  <img src="capturas/02_strlit_image.png" alt="Carga Batch CSV" width="600"/>
+
 
 ---
 
