@@ -152,8 +152,8 @@ class GraphQLTester:
                 "Bar": 1013.2,
                 "Rain": 0.0,
                 "ET": 3.2,
-                "WDirDeg": 180.0,
-                "DateNum": time.time()
+                "WDir_deg": 180.0,
+                "Date_num": time.time()
             },
             {
                 "TempOut": 28.1,
@@ -163,8 +163,8 @@ class GraphQLTester:
                 "Bar": 1010.8,
                 "Rain": 0.0,
                 "ET": 4.1,
-                "WDirDeg": 225.0,
-                "DateNum": time.time() + 86400  # Un día después
+                "WDir_deg": 225.0,
+                "Date_num": time.time() + 86400  # Un día después
             },
             {
                 "TempOut": 22.3,
@@ -174,8 +174,8 @@ class GraphQLTester:
                 "Bar": 1015.6,
                 "Rain": 0.0,
                 "ET": 2.8,
-                "WDirDeg": 270.0,
-                "DateNum": time.time() + 172800  # Dos días después
+                "WDir_deg": 270.0,
+                "Date_num": time.time() + 172800  # Dos días después
             }
         ]
         
@@ -219,8 +219,8 @@ class GraphQLTester:
                 Bar: 1013.2
                 Rain: 0.0
                 ET: 3.2
-                WDirDeg: 180.0
-                DateNum: 1640995200.0
+                WDir_deg: 180.0
+                Date_num: 1640995200.0
             }) {
                 probability
             }
