@@ -115,8 +115,8 @@ class GraphQLTester:
             "Bar": 1013.2,
             "Rain": 0.0,
             "ET": 3.2,
-            "WDirDeg": 180.0,
-            "DateNum": time.time()
+            "WDir_deg": 180.0,
+            "Date_num": time.time()
         }
         
         query = """

@@ -42,8 +42,8 @@ class WeatherData:
     Bar: float = strawberry.field(description="Presión barométrica")
     Rain: float = strawberry.field(description="Lluvia")
     ET: float = strawberry.field(description="Evapotranspiración")
-    WDirDeg: float = strawberry.field(description="Dirección del viento en grados")
-    DateNum: float = strawberry.field(description="Fecha en formato numérico")
+    WDir_deg: float = strawberry.field(description="Dirección del viento en grados")
+    Date_num: float = strawberry.field(description="Fecha en formato numérico")
 
 @strawberry.type
 class PredictionResult:
@@ -152,8 +152,8 @@ def weather_data_to_dict(weather: WeatherData) -> dict:
         'Bar': weather.Bar,
         'Rain': weather.Rain,
         'ET': weather.ET,
-        'WDir_deg': weather.WDirDeg,
-        'Date_num': weather.DateNum
+        'WDir_deg': weather.WDir_deg,
+        'Date_num': weather.Date_num
     }
 
 # ============================================================================
