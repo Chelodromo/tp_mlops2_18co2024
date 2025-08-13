@@ -562,10 +562,12 @@ services:
       GRAPHQL_URL: "http://graphql_api:8010/graphql"
       STREAMLIT_SERVER_RUN_ON_SAVE: "true"
     ports:
-      - "8503:8501"
+      - "8503:8502"        # externo 8503 → interno 8502
     restart: unless-stopped
     volumes:
-      - ./streamlit_app_ql:/app  # opcional: hot-reload al editar app.py
+      - ./streamlit_app_ql:/app
+
+
 
 
 volumes:

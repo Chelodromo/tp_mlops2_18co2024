@@ -4,7 +4,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
+COPY . .
 ENV PYTHONUNBUFFERED=1
-# Streamlit en 0.0.0.0 para exponer el puerto
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
+# Internamente corrermos en 8502 para no chocar con otras apps
+EXPOSE 8502
+CMD ["streamlit", "run", "app.py", "--server.port=8502", "--server.address=0.0.0.0"]
