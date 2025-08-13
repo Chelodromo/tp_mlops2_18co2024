@@ -549,6 +549,24 @@ services:
       retries: 5
     restart: unless-stopped
 
+### streamlit app for GraphQL ###
+  streamlit_app_ql:
+    build:
+      context: ./streamlit_app_ql
+      dockerfile: Dockerfile
+    container_name: streamlit_app_ql
+    depends_on:
+      graphql_api:
+        condition: service_started
+    environment:
+      GRAPHQL_URL: "http://graphql_api:8010/graphql"
+      STREAMLIT_SERVER_RUN_ON_SAVE: "true"
+    ports:
+      - "8503:8501"
+    restart: unless-stopped
+    volumes:
+      - ./streamlit_app_ql:/app  # opcional: hot-reload al editar app.py
+
 
 volumes:
   postgres-db-volume:
