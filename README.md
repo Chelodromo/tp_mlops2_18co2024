@@ -1,12 +1,16 @@
 
 # 🛠 Proyecto Airflow + MinIO + ML Pipeline
 
-Este proyecto orquesta un flujo completo de procesamiento de datos y entrenamiento de modelos de Machine Learning usando **Apache Airflow**, con almacenamiento de datos en **MinIO (S3 compatible)** y tracking de experimentos en **MLflow**. Todo está dockerizado y configurado para correr automáticamente.
+Este proyecto orquesta un flujo completo de procesamiento de datos y entrenamiento de modelos de Machine Learning usando **Apache Airflow**, con almacenamiento de datos en **MinIO (S3 compatible)** y tracking de experimentos en **MLflow**.  
+Adicionalmente, expone una API **GraphQL** para consultas y predicciones sobre el modelo entrenado, y una interfaz **Streamlit App QL** que consume esta API para visualización y exploración de resultados en tiempo real.  
+Todo el ecosistema está completamente dockerizado y configurado para correr de manera automática, permitiendo integrar ingesta de datos, entrenamiento, inferencia y visualización de manera centralizada.
+
+
+![pipelines](capturas/image.png)
 
 ## Integrantes
 a1822 Cristian Patricio Salinas Talamilla
 
-a1812 Ezequiel Eduardo Maudet
 
 a1811 Marcelo Adrián Más Valdecantos
 
