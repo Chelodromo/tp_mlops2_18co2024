@@ -21,22 +21,39 @@ a1826 Sebastian Carreras
 ```
 .
 ├── dags/                   # DAGs de Airflow
-├── fastapi_app/             # App de FastAPI para servir el modelo
-│   ├── app.py               # API principal
-│   ├── Dockerfile           # Contenedor streamlit
-│   ├── requirements.txt           # requerimientos del contenedor
-│   ├── datos_actuales.ipynb       # Jupyter Notebook para testear la API
 ├── plugins/task             # App de FastAPI para servir el modelo
 │   ├── entrenamiento_utils.py               # Funciones de entrenamiento
 │   ├── prediccion_utils.py           # Funciones de predeccion
 │   ├── procesamiento_utils.py           # Funciones de procesamiento
 │   ├── s3_utils.py           # Funciones de comunicacion con el bucker en Minio
-├── streamlit_app/             # App de FastAPI para servir el modelo
+
+├── fastapi_app(REST)/             # App de FastAPI para servir el modelo
+│   ├── app.py               # API principal
+│   ├── Dockerfile           # Contenedor 
+│   ├── requirements.txt           # requerimientos del contenedor
+│   ├── datos_actuales.ipynb       # Jupyter Notebook para testear la API
+
+├── graphql_app/             # FAST API con Implementacion de GraphQL
+│   ├── app.py               # API principal
+│   ├── Dockerfile           # Contenedor 
+│   ├── requirements.txt           # requerimientos del contenedor
+│   ├── entrypoint.sh              # testeos de la API
+│   ├── test_graphql.sh           # testeos de los endpoints
+
+├── streamlit_app (REST API)/  # App de FastAPI para servir el modelo en REST
 │   ├── app.py               # App principal
 │   ├── Dockerfile           # Contenedor streamlit
 │   ├── requirements.txt     # requerimientos del contenedor
 │   ├── data.csv             # datos para probar la app en modo batch
+
+├── streamlit_app_ql (REST API)/  # App de FastAPI para servir el modelo usando GraphQL
+│   ├── app.py               # App principal
+│   ├── Dockerfile           # Contenedor streamlit
+│   ├── requirements.txt     # requerimientos del contenedor
+│   ├── data.csv             # datos para probar la app en modo batch
+
 ├── mlflow/                  # Carpeta local para MLflow tracking
+
 ├── streaming/               # servicio de kafka
   ├── consumer_smoke           # servicio de prueba sin predicciones reales, solo comunicacion
   │   ├── app.py
@@ -58,6 +75,7 @@ a1826 Sebastian Carreras
       ├── app.py
       ├── Dockerfile
       └── requirements.txt
+
 ├── docker-compose.yml       # Definición de servicios
 └── .gitignore               # Ignorar archivos temporales
 ```
@@ -205,6 +223,142 @@ Cada vez que la app FastAPI se inicia:
 - Busca automáticamente el último modelo `.pkl` en el bucket MinIO `respaldo2/best_model/`
 - Carga el modelo al inicio (`@app.on_event('startup')`).
 
+---
+## 🧩 API GraphQL para Predicciones
+
+Se incorporó un nuevo servicio `graphql_api` que permite interactuar con el modelo usando **GraphQL** en lugar de la API REST de FastAPI. Esto brinda mayor flexibilidad en las consultas y en la estructura de las respuestas.
+
+- **Endpoint GraphQL**: [http://localhost:8010/graphql](http://localhost:8010/graphql)  
+- **Health Check**: [http://localhost:8010/health](http://localhost:8010/health)  
+
+### 🔹 Operaciones disponibles
+
+#### Consultar información del modelo
+```graphql
+{
+  modelInfo {
+    timestamp
+    isLoaded
+    features
+  }
+}
+```
+#### Recargar el modelo desde MinIO
+```graphql
+mutation {
+  reloadModel {
+    status
+  }
+}
+```
+#### Predicción individual
+```graphql
+mutation($x: WeatherData!) {
+  predict(weatherData: $x) {
+    probability
+  }
+}
+
+```
+#### Variables de ejemplo
+```json
+{
+  "x": {
+    "TempOut": 25,
+    "DewPt": 10,
+    "WSpeed": 12,
+    "WHSpeed": 20,
+    "Bar": 1010,
+    "Rain": 0,
+    "ET": 2.3,
+    "WDirDeg": 180,
+    "DateNum": 1723330000
+  }
+}
+```
+#### Predicciones por lote (batch)
+
+```graphql
+mutation($xs: [WeatherData!]!) {
+  predictBatch(weatherDataList: $xs) {
+    predictions {
+      date
+      probability
+    }
+  }
+}
+```
+#### Variables de ejemplo
+```json
+{
+  "xs": [
+    {
+      "TempOut": 25,
+      "DewPt": 15,
+      "WSpeed": 5,
+      "WHSpeed": 12,
+      "Bar": 1013,
+      "Rain": 0,
+      "ET": 1.1,
+      "WDirDeg": 120,
+      "DateNum": 1723330000
+    },
+    {
+      "TempOut": 10,
+      "DewPt": 2,
+      "WSpeed": 12,
+      "WHSpeed": 25,
+      "Bar": 1000,
+      "Rain": 1,
+      "ET": 0.5,
+      "WDirDeg": 80,
+      "DateNum": 1723330500
+    }
+  ]
+}
+```
+### 📦 Testeo rápido con Docker
+
+Para probar el servicio GraphQL directamente desde Docker sin levantar todo el stack, podés usar:
+
+#### 1️⃣ Levantar solo el servicio GraphQL
+```bash
+docker compose up -d graphql_api
+
+```
+Esto va a dejar disponible la consola interactiva de GraphQL en:
+http://localhost:8010/graphql
+
+#### 2️⃣ Enviar consultas de prueba con docker exec
+```bash
+# Consultar info del modelo
+docker exec -it graphql_api curl -X POST http://localhost:8010/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ modelInfo { timestamp isLoaded features } }"}'
+
+# Hacer una predicción de ejemplo
+docker exec -it graphql_api curl -X POST http://localhost:8010/graphql \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query":"mutation($x: WeatherData!) { predict(weatherData: $x) { probability } }",
+    "variables": {
+      "x": {
+        "TempOut": 25,
+        "DewPt": 10,
+        "WSpeed": 12,
+        "WHSpeed": 20,
+        "Bar": 1010,
+        "Rain": 0,
+        "ET": 2.3,
+        "WDirDeg": 180,
+        "DateNum": 1723330000
+      }
+    }
+  }'
+
+```
+
+---
 ## ⚡ Integración con Apache Kafka
 
 Se implementó un flujo **streaming en tiempo real** para procesar y predecir datos meteorológicos usando **Kafka** como sistema de mensajería.  
@@ -287,6 +441,8 @@ Accesos:
 - **Streamlit Tiempo Real**: [http://localhost:8502](http://localhost:8502) *(lee de `predictions` y muestra resultados en vivo)*  
 - **Kafka UI**: [http://localhost:8085](http://localhost:8085)  
   *(Monitoreo de tópicos, mensajes y estado del broker)*  
+- **GraphQL API**: [http://localhost:8010/graphql](http://localhost:8010/graphql) *(consultas y mutaciones con el modelo)*  
+- **Streamlit App QL**: [http://localhost:8503](http://localhost:8503) *(interfaz web que consume la API GraphQL para predicciones y exploración de datos)*
 
 ## 🔧 Servicios Docker
 
@@ -299,10 +455,13 @@ Accesos:
 | PostgreSQL        | 5432             | Base de datos de Airflow       |
 | Redis             | 6379             | Broker de Airflow              |
 | MLflow            | 5001             | Tracking server de MLflow      |
-| FastAPI           | 8000             | API REST para predicciones     |
-| Streamlit         | 8501             | Aplicacion para usar el modelo     |
-| Streamlit (vivo)  | 8501             | Aplicacion de predicciones en tiempo real  |
+| FastAPI (REST)          | 8000             | API REST para predicciones     |
+| FastAPI (GraphQL) | 8503            | API en entorno de GQL para predicciones|
+| Streamlit   REST API      | 8501             | Aplicacion para usar el modelo    usando REST API |
+| Streamlit   QL API      | 8503             | Aplicacion para usar el modelo usando QL    |
+| Streamlit Kafka (vivo)  | 8502             | Aplicacion de predicciones en tiempo real  |
 | Kafka IU          | 8085.            | UI de Kafka para ver los mensajes e inferencia|
+
 
 ## 🎨 Streamlit App
 
@@ -339,7 +498,28 @@ La aplicación **Streamlit** permite a los usuarios **interactuar de forma gráf
   <img src="capturas/01_strlit_image.png" alt="Carga Batch CSV" width="600"/>  
   <img src="capturas/02_strlit_image.png" alt="Carga Batch CSV" width="600"/>
 
+---
+
+## 🖥️ Streamlit App QL
+
+La **Streamlit App QL** es una interfaz web que consume directamente la API de **GraphQL** del proyecto.  
+Su objetivo es ofrecer una experiencia interactiva para:
+
+- Cargar datos en formato CSV.
+- Visualizar y explorar las columnas del dataset.
+- Ejecutar predicciones contra el modelo expuesto por GraphQL.
+- Mostrar resultados de forma tabular o gráfica.
 
 ---
 
+### 🚀 Levantar la app
 
+Para iniciar la aplicación:
+
+```bash
+docker compose up -d streamlit_app_ql
+```
+La aplicación estará disponible en:
+http://localhost:8503
+
+---
