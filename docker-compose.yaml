@@ -523,6 +523,33 @@ services:
       - "8502:8501"
     restart: unless-stopped
 
+### GraphQL API ###
+  graphql_api:
+    build:
+      context: ./graphql_app
+      dockerfile: Dockerfile
+    container_name: graphql_api
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: "minio_admin"
+      MINIO_SECRET_KEY: "minio_admin"
+      BUCKET_NAME: "respaldo2"
+      PREFIX: "best_model/"   # o "modelos/" según tu DAG
+      RUN_STARTUP_TESTS: "1"  # desactivalo con "0" si no querés test en el arranque
+    ports:
+      - "8010:8010"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8010/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+
 volumes:
   postgres-db-volume:
   minio_data:

@@ -18,7 +18,7 @@ MINIO_ENDPOINT   = os.getenv('MINIO_ENDPOINT', 'localhost:9000')
 MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY', 'minio_admin')
 MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY', 'minio_admin')
 BUCKET_NAME      = "respaldo2"
-PREFIX           = "modelos/"
+PREFIX           = "best_model/"
 
 # Variables globales
 model: Any = None
